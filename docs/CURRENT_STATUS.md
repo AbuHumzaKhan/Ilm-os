@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-**Phase 0 — Foundation**
+**Phase 1 — Core Learning Engine**
 
 ## Current Milestone
 
-Implementation architecture and open-source integration strategy.
+**M2 — Persistent Learning State**
 
 ## Completed
 
@@ -34,6 +34,12 @@ Implementation architecture and open-source integration strategy.
 - Concrete implementation architecture defined.
 - Open-source component registry created.
 - Open-source integration strategy defined.
+- First VLOOKUP vertical slice implemented and verified.
+- FastAPI, Next.js, API communication, attempt handling, and automated tests verified.
+- PostgreSQL persistence layer added with SQLAlchemy and Psycopg.
+- Alembic initial migration added for learners, content metadata, attempts, progress, and mastery.
+- Local PostgreSQL Docker Compose service added.
+- Learning Engine now routes lesson and attempt operations through the persistence repository.
 
 ## Selected Stack
 
@@ -45,11 +51,11 @@ Use multiple open-source projects through reference patterns, compatible depende
 
 ## In Progress
 
-Prepare the initial repository implementation skeleton and freeze the first vertical slice.
+Verify the PostgreSQL persistence milestone locally and prove that learner, lesson, attempt, and progress state survives API requests.
 
 ## Next Task
 
-Create the implementation skeleton and contracts for the first vertical slice: request → skill resolution → lesson → exercise → attempt → progress.
+Run the persistence verification: install new API dependencies → start PostgreSQL → run Alembic migrations → start FastAPI → verify VLOOKUP resolution from PostgreSQL → submit an attempt → query persistence → run pytest.
 
 ## Do Not Work On Yet
 
@@ -57,7 +63,7 @@ Create the implementation skeleton and contracts for the first vertical slice: r
 - Do not build advanced AI agents.
 - Do not optimize deployment infrastructure.
 - Do not add unnecessary integrations.
-- Do not begin large-scale UI implementation before the first vertical slice is working.
+- Do not begin large-scale UI implementation before persistence is verified.
 - Do not introduce microservices without a measured requirement.
 - Do not expose untrusted Python/SQL execution publicly before sandbox security controls are implemented and tested.
 
