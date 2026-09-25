@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 type Lesson = {
   id: string;
@@ -37,8 +37,63 @@ type AttemptResult = {
   };
 };
 
+type RelatedTopic = {
+  id: string;
+  title: string;
+  description: string;
+  level: "Foundation" | "Core" | "Advanced";
+  relation: string;
+};
+
 const API_URL = "http://127.0.0.1:8000";
 const LEARNER_ID = "local-learner";
+
+const RELATED_TOPICS: Record<string, RelatedTopic[]> = {
+  vlookup: [
+    {
+      id: "hlookup",
+      title: "HLOOKUP",
+      description: "Learn horizontal lookup when your reference table is organized by rows.",
+      level: "Foundation",
+      relation: "Lookup family",
+    },
+    {
+      id: "xlookup",
+      title: "XLOOKUP",
+      description: "Move from classic VLOOKUP patterns to the more flexible modern lookup function.",
+      level: "Core",
+      relation: "Modern alternative",
+    },
+    {
+      id: "index-match",
+      title: "INDEX + MATCH",
+      description: "Build flexible lookup solutions by separating position finding from value retrieval.",
+      level: "Core",
+      relation: "Alternative pattern",
+    },
+    {
+      id: "match",
+      title: "MATCH",
+      description: "Understand how Excel finds the position of a value inside a range.",
+      level: "Foundation",
+      relation: "Supporting concept",
+    },
+    {
+      id: "lookup",
+      title: "LOOKUP",
+      description: "Explore the classic LOOKUP function and where it fits in the lookup family.",
+      level: "Core",
+      relation: "Related function",
+    },
+    {
+      id: "iferror-lookup",
+      title: "IFERROR + Lookup",
+      description: "Make lookup formulas safer by handling missing matches and user-facing errors.",
+      level: "Advanced",
+      relation: "Practical extension",
+    },
+  ],
+};
 
 export default function LearnPage() {
   const [message, setMessage] = useState("Teach me VLOOKUP");
@@ -48,6 +103,11 @@ export default function LearnPage() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const relatedTopics = useMemo(
+    () => (session ? RELATED_TOPICS[session.concept_id] ?? [] : []),
+    [session],
+  );
 
   async function startLearning(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -116,6 +176,12 @@ export default function LearnPage() {
     setError(null);
   }
 
+  function inspectTopic(topic: RelatedTopic) {
+    setMessage(`Teach me ${topic.title}`);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   const completed = attempt?.progress.status === "completed";
   const submitted = Boolean(attempt);
 
@@ -142,8 +208,8 @@ export default function LearnPage() {
         <div className="eyebrow">PERSONAL LEARNING WORKSPACE</div>
         <h1>Learn with context.<br /><span>Practice with purpose.</span></h1>
         <p className="hero-copy">
-          Start a lesson from your learning request, study the persisted lesson content,
-          then submit an exercise and receive server-verified progress.
+          Search for one concept and Ilm-os can surface the connected skills around it,
+          so a single question can become a complete learning path.
         </p>
       </section>
 
@@ -168,6 +234,23 @@ export default function LearnPage() {
               <span>{completed ? "Exercise submitted successfully" : "Lesson → exercise → progress"}</span>
             </div>
           </div>
+
+          {session && relatedTopics.length > 0 && (
+            <div className="sidebar-topics">
+              <div className="panel-label">SUGGESTED PATH</div>
+              <div className="topic-mini-list">
+                {relatedTopics.slice(0, 4).map((topic, index) => (
+                  <button key={topic.id} type="button" onClick={() => inspectTopic(topic)} className="topic-mini">
+                    <span className="topic-mini-number">0{index + 1}</span>
+                    <span>
+                      <strong>{topic.title}</strong>
+                      <small>{topic.relation}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="sidebar-note">
             <span className="note-icon">✓</span>
@@ -226,6 +309,42 @@ export default function LearnPage() {
                   <div className="lesson-content">{session.lesson.content}</div>
                 </div>
               </section>
+
+              {relatedTopics.length > 0 && (
+                <section className="related-card">
+                  <div className="related-heading">
+                    <div>
+                      <div className="eyebrow">LEARNING ECOSYSTEM</div>
+                      <h2>Continue beyond {session.lesson.title.replace(" Fundamentals", "")}</h2>
+                      <p>
+                        You searched for <strong>{session.lesson.title.replace(" Fundamentals", "")}</strong>.
+                        These connected topics are suggested next so you can explore the surrounding skill tree.
+                      </p>
+                    </div>
+                    <span className="suggestion-count">{relatedTopics.length} TOPICS</span>
+                  </div>
+
+                  <div className="topic-grid">
+                    {relatedTopics.map((topic) => (
+                      <article key={topic.id} className="topic-card">
+                        <div className="topic-card-top">
+                          <span className="topic-relation">{topic.relation}</span>
+                          <span className={`topic-level ${topic.level.toLowerCase()}`}>{topic.level}</span>
+                        </div>
+                        <h3>{topic.title}</h3>
+                        <p>{topic.description}</p>
+                        <button type="button" className="topic-link" onClick={() => inspectTopic(topic)}>
+                          Explore topic <span>→</span>
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+
+                  <div className="related-footer">
+                    <span>Suggestions are based on the current concept and will become fully data-driven as the learning graph expands.</span>
+                  </div>
+                </section>
+              )}
 
               <section className="exercise-card">
                 <div className="exercise-topline">
@@ -314,9 +433,9 @@ export default function LearnPage() {
         .eyebrow { color: #6875ff; font-size: 10px; font-weight: 800; letter-spacing: .16em; }
         .hero h1 { margin: 12px 0 16px; max-width: 760px; font-size: clamp(42px, 6vw, 72px); line-height: .98; letter-spacing: -.055em; }
         .hero h1 span { color: #7f8798; }
-        .hero-copy { max-width: 620px; margin: 0; color: #8f97a8; line-height: 1.7; font-size: 15px; }
+        .hero-copy { max-width: 680px; margin: 0; color: #8f97a8; line-height: 1.7; font-size: 15px; }
         .workspace { display: grid; grid-template-columns: 275px minmax(0, 1fr); gap: 22px; align-items: start; }
-        .sidebar, .command-card, .lesson-card, .exercise-card, .result-card, .error-card { border: 1px solid rgba(255,255,255,.075); background: rgba(16,19,27,.78); backdrop-filter: blur(20px); box-shadow: 0 24px 80px rgba(0,0,0,.22); }
+        .sidebar, .command-card, .lesson-card, .exercise-card, .result-card, .error-card, .related-card { border: 1px solid rgba(255,255,255,.075); background: rgba(16,19,27,.78); backdrop-filter: blur(20px); box-shadow: 0 24px 80px rgba(0,0,0,.22); }
         .sidebar { padding: 20px; border-radius: 18px; position: sticky; top: 20px; }
         .panel-label { color: #555d6d; font-size: 9px; font-weight: 800; letter-spacing: .17em; }
         .session-card, .progress-card { display: flex; align-items: center; gap: 12px; padding: 14px 0; }
@@ -327,16 +446,24 @@ export default function LearnPage() {
         .progress-card { border-top: 1px solid rgba(255,255,255,.06); border-bottom: 1px solid rgba(255,255,255,.06); padding: 17px 0; }
         .progress-ring { width: 48px; height: 48px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(94,211,180,.25); background: radial-gradient(circle, rgba(54,213,169,.08), transparent 65%); color: #54d8b1; font-size: 12px; font-weight: 800; }
         .progress-ring small { font-size: 7px; margin-left: 1px; }
+        .sidebar-topics { margin-top: 20px; }
+        .topic-mini-list { display: grid; gap: 4px; margin-top: 10px; }
+        .topic-mini { display: grid; grid-template-columns: 28px 1fr; align-items: center; gap: 7px; width: 100%; padding: 8px 6px; border: 0; border-radius: 9px; color: inherit; background: transparent; text-align: left; }
+        .topic-mini:hover { background: rgba(102,115,255,.07); }
+        .topic-mini-number { color: #4c5566; font-size: 8px; font-weight: 800; }
+        .topic-mini strong, .topic-mini small { display: block; }
+        .topic-mini strong { color: #cdd2dd; font-size: 10px; }
+        .topic-mini small { margin-top: 2px; color: #5f6878; font-size: 8px; }
         .sidebar-note { display: flex; gap: 10px; margin-top: 18px; padding: 12px; border-radius: 12px; background: rgba(255,255,255,.025); }
         .note-icon { color: #53d8b0; font-size: 12px; }
         .sidebar-note strong { font-size: 10px; }
         .sidebar-note p { margin: 5px 0 0; color: #666e7d; font-size: 9px; line-height: 1.5; }
         .content-column { min-width: 0; display: grid; gap: 16px; }
-        .command-card, .lesson-card, .exercise-card, .result-card, .error-card { border-radius: 18px; }
+        .command-card, .lesson-card, .exercise-card, .result-card, .error-card, .related-card { border-radius: 18px; }
         .command-card { padding: 25px; }
-        .card-heading, .exercise-topline { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+        .card-heading, .exercise-topline, .related-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
         h2 { margin: 7px 0 0; font-size: 22px; letter-spacing: -.025em; }
-        .api-badge, .exercise-tag { padding: 6px 8px; border: 1px solid rgba(83,216,176,.18); border-radius: 6px; color: #53d8b0; background: rgba(83,216,176,.05); font-size: 8px; font-weight: 800; letter-spacing: .12em; white-space: nowrap; }
+        .api-badge, .exercise-tag, .suggestion-count { padding: 6px 8px; border: 1px solid rgba(83,216,176,.18); border-radius: 6px; color: #53d8b0; background: rgba(83,216,176,.05); font-size: 8px; font-weight: 800; letter-spacing: .12em; white-space: nowrap; }
         .command-form { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 22px; }
         .input-wrap { display: flex; align-items: center; min-width: 0; border: 1px solid rgba(255,255,255,.09); border-radius: 11px; background: #0b0e14; }
         .input-prefix { padding-left: 14px; color: #6975ff; font-size: 20px; }
@@ -355,6 +482,25 @@ export default function LearnPage() {
         .objective { margin: 14px 0; color: #b4bbc8; font-size: 13px; line-height: 1.65; }
         .objective strong { color: #eef1f7; }
         .lesson-content { padding: 14px 16px; border-left: 2px solid #5966ee; border-radius: 0 8px 8px 0; background: rgba(89,102,238,.055); color: #818a9b; font-size: 12px; line-height: 1.7; }
+        .related-card { padding: 26px; }
+        .related-heading h2 { font-size: 24px; }
+        .related-heading p { max-width: 680px; margin: 10px 0 0; color: #727b8d; font-size: 11px; line-height: 1.7; }
+        .related-heading p strong { color: #cfd4df; }
+        .suggestion-count { color: #8791ff; border-color: rgba(104,117,255,.2); background: rgba(104,117,255,.06); }
+        .topic-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
+        .topic-card { min-width: 0; padding: 16px; border: 1px solid rgba(255,255,255,.065); border-radius: 13px; background: rgba(255,255,255,.018); transition: transform .2s ease, border-color .2s ease, background .2s ease; }
+        .topic-card:hover { transform: translateY(-2px); border-color: rgba(104,117,255,.22); background: rgba(104,117,255,.035); }
+        .topic-card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .topic-relation { color: #555f70; font-size: 8px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+        .topic-level { padding: 4px 6px; border-radius: 5px; font-size: 7px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+        .topic-level.foundation { color: #7fd9bc; background: rgba(83,216,176,.07); }
+        .topic-level.core { color: #8791ff; background: rgba(104,117,255,.08); }
+        .topic-level.advanced { color: #c6a9ff; background: rgba(171,130,255,.08); }
+        .topic-card h3 { margin: 12px 0 6px; font-size: 15px; letter-spacing: -.015em; }
+        .topic-card p { min-height: 48px; margin: 0; color: #727b8c; font-size: 10px; line-height: 1.6; }
+        .topic-link { display: inline-flex; align-items: center; gap: 7px; margin-top: 13px; padding: 0; border: 0; color: #7d89ff; background: transparent; font-size: 9px; font-weight: 800; }
+        .topic-link:hover { color: #a4adff; }
+        .related-footer { margin-top: 15px; padding-top: 13px; border-top: 1px solid rgba(255,255,255,.05); color: #4e5767; font-size: 8px; line-height: 1.5; }
         .exercise-card { padding: 26px; }
         .prompt-box { margin: 23px 0 20px; padding: 17px; border: 1px solid rgba(255,255,255,.065); border-radius: 11px; background: rgba(255,255,255,.025); }
         .prompt-label { color: #626b7c; font-size: 8px; font-weight: 800; letter-spacing: .16em; }
@@ -387,6 +533,8 @@ export default function LearnPage() {
           .answer-actions { align-items: stretch; flex-direction: column; }
           .result-card { align-items: flex-start; flex-wrap: wrap; }
           .result-status { margin-left: 55px; }
+          .topic-grid { grid-template-columns: 1fr; }
+          .related-heading { flex-direction: column; }
           .footer { gap: 10px; flex-direction: column; }
         }
       `}</style>
