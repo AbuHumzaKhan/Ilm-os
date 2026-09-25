@@ -1,3 +1,5 @@
+"use client";
+
 import LearningModeShell from "../../../components/learning/LearningModeShell";
 
 const resources = [
