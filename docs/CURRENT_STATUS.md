@@ -6,7 +6,7 @@
 
 ## Current Milestone
 
-Learning Engine domain model and schema.
+Technical architecture layer.
 
 ## Completed
 
@@ -26,14 +26,17 @@ Learning Engine domain model and schema.
 - Base `.gitignore` created.
 - Formal Learning Engine domain model documented.
 - Draft Learning Engine schema created.
+- Domain model validated against Excel/VLOOKUP, SQL/JOIN, and Python/Pandas scenarios.
+- Technical architecture layer defined.
+- Technical requirements and technology-selection criteria defined.
 
 ## In Progress
 
-Review and freeze the domain model before implementation.
+Review the technical architecture and requirements before selecting the application technology stack.
 
 ## Next Task
 
-Validate the entities, relationships, invariants, and versioning rules in `docs/DOMAIN_MODEL.md` and `schemas/learning-engine.yaml`. After approval, derive the technical architecture and application stack from the accepted model.
+Select and document the initial technology stack based on the defined requirements, then create the implementation architecture and repository structure.
 
 ## Blocked By
 
@@ -45,9 +48,8 @@ No blocker currently identified.
 - Do not build advanced AI agents.
 - Do not optimize deployment infrastructure.
 - Do not add unnecessary integrations.
-- Do not start production UI.
-- Do not implement the database schema before the domain model is accepted.
-- Do not lock in framework choices merely because they are familiar.
+- Do not build production UI before core contracts are established.
+- Do not introduce microservices without a measured requirement.
 
 ## Working Rule
 
