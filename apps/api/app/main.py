@@ -1,12 +1,22 @@
 from dataclasses import asdict
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.application.learning_service import LearningService
 from app.domain.models import Attempt
 
 app = FastAPI(title="Ilm-os API", version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 learning_service = LearningService()
 
 
