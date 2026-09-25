@@ -14,7 +14,7 @@ app = FastAPI(title="Ilm-os API", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,7 +30,8 @@ class AttemptRequest(BaseModel):
     learner_id: str
     exercise_id: str
     answer: str
-    correct: bool
+    # Kept optional for backward compatibility. The server is authoritative.
+    correct: bool | None = None
 
 
 @app.get("/health")
@@ -53,13 +54,24 @@ def start_learning(payload: LearnRequest, session: Session = Depends(get_session
 
 @app.post("/api/learning/attempt")
 def submit_attempt(payload: AttemptRequest, session: Session = Depends(get_session)) -> dict:
-    service = LearningService(LearningRepository(session))
+    repository = LearningRepository(session)
+    service = LearningService(repository)
+    exercise = repository.get_exercise(payload.exercise_id)
+
+    if exercise is None:
+        raise HTTPException(status_code=404, detail=f"Exercise not found: {payload.exercise_id}")
+
+    # Never trust correctness supplied by the browser. The expected answer stays
+    # on the server and is used only for evaluation.
+    correct = payload.answer.strip().casefold() == exercise.expected_answer.strip().casefold()
+
     attempt = Attempt(
         exercise_id=payload.exercise_id,
         learner_id=payload.learner_id,
         answer=payload.answer,
-        correct=payload.correct,
+        correct=correct,
     )
+
     try:
         progress = service.evaluate_attempt(attempt)
     except ValueError as exc:
