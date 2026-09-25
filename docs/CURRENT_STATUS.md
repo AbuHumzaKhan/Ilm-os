@@ -6,7 +6,7 @@
 
 ## Current Milestone
 
-Technical architecture layer.
+Technical architecture + learning UX specification.
 
 ## Completed
 
@@ -29,18 +29,15 @@ Technical architecture layer.
 - Domain model validated against Excel/VLOOKUP, SQL/JOIN, and Python/Pandas scenarios.
 - Technical architecture layer defined.
 - Technical requirements and technology-selection criteria defined.
+- Multi-page Learning UX specification defined.
 
 ## In Progress
 
-Review the technical architecture and requirements before selecting the application technology stack.
+Review the technical architecture, learning UX, and requirements before selecting the application technology stack.
 
 ## Next Task
 
 Select and document the initial technology stack based on the defined requirements, then create the implementation architecture and repository structure.
-
-## Blocked By
-
-No blocker currently identified.
 
 ## Do Not Work On Yet
 
@@ -48,7 +45,7 @@ No blocker currently identified.
 - Do not build advanced AI agents.
 - Do not optimize deployment infrastructure.
 - Do not add unnecessary integrations.
-- Do not build production UI before core contracts are established.
+- Do not begin production UI implementation until the technology and implementation architecture are selected.
 - Do not introduce microservices without a measured requirement.
 
 ## Working Rule
