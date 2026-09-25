@@ -1,13 +1,16 @@
 from dataclasses import asdict
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.application.learning_service import LearningService
 from app.domain.models import Attempt
+from app.infrastructure.db import get_session
+from app.infrastructure.repository import LearningRepository
 
-app = FastAPI(title="Ilm-os API", version="0.1.0")
+app = FastAPI(title="Ilm-os API", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,8 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-learning_service = LearningService()
 
 
 class LearnRequest(BaseModel):
@@ -38,22 +39,30 @@ def health() -> dict[str, str]:
 
 
 @app.post("/api/learning/start")
-def start_learning(payload: LearnRequest) -> dict:
+def start_learning(payload: LearnRequest, session: Session = Depends(get_session)) -> dict:
+    service = LearningService(LearningRepository(session))
     try:
-        response = learning_service.start_learning(payload.learner_id, payload.message)
+        response = service.start_learning(payload.learner_id, payload.message)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     return asdict(response)
 
 
 @app.post("/api/learning/attempt")
-def submit_attempt(payload: AttemptRequest) -> dict:
+def submit_attempt(payload: AttemptRequest, session: Session = Depends(get_session)) -> dict:
+    service = LearningService(LearningRepository(session))
     attempt = Attempt(
         exercise_id=payload.exercise_id,
         learner_id=payload.learner_id,
         answer=payload.answer,
         correct=payload.correct,
     )
-    progress = learning_service.evaluate_attempt(attempt)
+    try:
+        progress = service.evaluate_attempt(attempt)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
     return {"attempt": asdict(attempt), "progress": asdict(progress)}
