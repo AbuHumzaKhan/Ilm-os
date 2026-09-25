@@ -26,14 +26,20 @@ function serializeDataset(columns, rows) {
 }
 
 self.onmessage = async (event) => {
-  const message = event.data;
+  const message = event.data || {};
 
   if (message.type === "load") {
     try {
-      await loadRuntime();
-      self.postMessage({ type: "ready", pythonVersion: "3.14" });
+      const runtime = await loadRuntime();
+      self.postMessage({
+        type: "ready",
+        pythonVersion: runtime.runPython("import sys; sys.version.split()[0]"),
+      });
     } catch (error) {
-      self.postMessage({ type: "error", message: error instanceof Error ? error.message : String(error) });
+      self.postMessage({
+        type: "error",
+        message: error instanceof Error ? error.message : String(error),
+      });
     }
     return;
   }
@@ -54,14 +60,12 @@ self.onmessage = async (event) => {
 
     const bootstrap = `
 import json
-from io import StringIO
 import pandas as pd
 import numpy as np
 
 __records = json.loads(__ILMOS_DATASET_JSON__)
 df = pd.DataFrame(__records, columns=__ILMOS_COLUMNS__)
 
-# Friendly aliases used throughout Ilm-os exercises.
 data = df
 sales = df
 `;
