@@ -39,7 +39,6 @@ export default function BusinessDatasetSheet({ dataset, resetKey }: BusinessData
     () => [
       {
         name: dataset.name,
-        index: "0",
         id: "business-dataset",
         status: 1,
         order: 0,
@@ -60,9 +59,8 @@ export default function BusinessDatasetSheet({ dataset, resetKey }: BusinessData
         data={data}
         allowEdit
         showToolbar
-        showinfobar
-        showsheetbar={false}
-        showstatisticBar={false}
+        showFormulaBar
+        showSheetTabs={false}
         lang="en"
       />
       <style jsx>{`
