@@ -2,15 +2,16 @@ from dataclasses import asdict
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.application.learning_service import LearningService
+from app.application.python_execution import PythonExecutionError, execute_python
 from app.domain.models import Attempt
 from app.infrastructure.db import get_session
 from app.infrastructure.repository import LearningRepository
 
-app = FastAPI(title="Ilm-os API", version="0.2.0")
+app = FastAPI(title="Ilm-os API", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,8 +31,13 @@ class AttemptRequest(BaseModel):
     learner_id: str
     exercise_id: str
     answer: str
-    # Kept optional for backward compatibility. The server is authoritative.
     correct: bool | None = None
+
+
+class PythonExecutionRequest(BaseModel):
+    code: str = Field(min_length=1, max_length=20_000)
+    columns: list[str] = Field(min_length=1, max_length=50)
+    rows: list[list[object]] = Field(max_length=5_000)
 
 
 @app.get("/health")
@@ -61,10 +67,7 @@ def submit_attempt(payload: AttemptRequest, session: Session = Depends(get_sessi
     if exercise is None:
         raise HTTPException(status_code=404, detail=f"Exercise not found: {payload.exercise_id}")
 
-    # Never trust correctness supplied by the browser. The expected answer stays
-    # on the server and is used only for evaluation.
     correct = payload.answer.strip().casefold() == exercise.expected_answer.strip().casefold()
-
     attempt = Attempt(
         exercise_id=payload.exercise_id,
         learner_id=payload.learner_id,
@@ -78,3 +81,14 @@ def submit_attempt(payload: AttemptRequest, session: Session = Depends(get_sessi
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     return {"attempt": asdict(attempt), "progress": asdict(progress)}
+
+
+@app.post("/api/python/execute")
+def execute_python_code(payload: PythonExecutionRequest) -> dict[str, object]:
+    if any(len(row) != len(payload.columns) for row in payload.rows):
+        raise HTTPException(status_code=422, detail="Dataset rows do not match the column count.")
+
+    try:
+        return execute_python(payload.code, payload.columns, payload.rows)
+    except PythonExecutionError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
