@@ -1,0 +1,186 @@
+schema_version: "0.1.0"
+name: Ilm-os Learning Engine Domain Schema
+status: draft
+
+entities:
+  Skill:
+    required: [id, slug, name, description, domain, status, version]
+    fields:
+      id: {type: string, description: Stable unique identifier}
+      slug: {type: string}
+      name: {type: string}
+      description: {type: string}
+      domain: {type: string}
+      status: {type: enum, values: [planned, active, deprecated]}
+      version: {type: string}
+      prerequisite_refs: {type: list, item: string}
+      objective_refs: {type: list, item: string}
+      curriculum_ref: {type: string}
+      mastery_policy_ref: {type: string}
+
+  Topic:
+    required: [id, skill_id, slug, name, description, order]
+    fields:
+      id: {type: string}
+      skill_id: {type: string, ref: Skill}
+      slug: {type: string}
+      name: {type: string}
+      description: {type: string}
+      order: {type: integer, minimum: 0}
+      prerequisite_refs: {type: list, item: string}
+      concept_refs: {type: list, item: string}
+
+  Concept:
+    required: [id, topic_id, slug, name, description, type, difficulty]
+    fields:
+      id: {type: string}
+      topic_id: {type: string, ref: Topic}
+      slug: {type: string}
+      name: {type: string}
+      description: {type: string}
+      type: {type: enum, values: [conceptual, procedural, factual, troubleshooting, strategic]}
+      prerequisite_concept_refs: {type: list, item: string}
+      objective_refs: {type: list, item: string}
+      difficulty: {type: enum, values: [beginner, intermediate, advanced]}
+
+  LearningObjective:
+    required: [id, statement, verb]
+    fields:
+      id: {type: string}
+      statement: {type: string}
+      verb: {type: enum, values: [explain, identify, apply, create, debug, analyze, compare, design, evaluate]}
+      concept_refs: {type: list, item: string}
+      assessment_criteria: {type: list, item: string}
+
+  Curriculum:
+    required: [id, skill_id, version, module_refs]
+    fields:
+      id: {type: string}
+      skill_id: {type: string, ref: Skill}
+      version: {type: string}
+      module_refs: {type: list, item: string}
+      default_sequence: {type: list, item: string}
+      adaptive_rules: {type: list, item: string}
+
+  Module:
+    required: [id, curriculum_id, name, order, lesson_refs]
+    fields:
+      id: {type: string}
+      curriculum_id: {type: string, ref: Curriculum}
+      name: {type: string}
+      description: {type: string}
+      order: {type: integer, minimum: 0}
+      lesson_refs: {type: list, item: string}
+      completion_policy: {type: string}
+
+  Lesson:
+    required: [id, module_id, title, objective_refs, concept_refs, content_blocks]
+    fields:
+      id: {type: string}
+      module_id: {type: string, ref: Module}
+      title: {type: string}
+      objective_refs: {type: list, item: string}
+      concept_refs: {type: list, item: string}
+      prerequisite_refs: {type: list, item: string}
+      content_blocks: {type: list, item: string}
+      exercise_refs: {type: list, item: string}
+      knowledge_check_refs: {type: list, item: string}
+      estimated_minutes: {type: integer, minimum: 1}
+      difficulty: {type: enum, values: [beginner, intermediate, advanced]}
+      completion_policy: {type: string}
+
+  Exercise:
+    required: [id, lesson_id, type, prompt, objective_refs, evaluation_policy]
+    fields:
+      id: {type: string}
+      lesson_id: {type: string, ref: Lesson}
+      type: {type: enum, values: [guided, independent, debugging, scenario, transfer, project]}
+      prompt: {type: string}
+      objective_refs: {type: list, item: string}
+      concept_refs: {type: list, item: string}
+      difficulty: {type: enum, values: [beginner, intermediate, advanced]}
+      input_definition: {type: object}
+      expected_output: {type: object}
+      evaluation_policy: {type: object}
+      hint_policy: {type: object}
+      solution: {type: object}
+
+  Assessment:
+    required: [id, scope, item_refs, attempt_policy, passing_policy, mastery_policy]
+    fields:
+      id: {type: string}
+      scope: {type: enum, values: [lesson, topic, skill, project]}
+      item_refs: {type: list, item: string}
+      attempt_policy: {type: object}
+      passing_policy: {type: object}
+      mastery_policy: {type: object}
+
+  AssessmentItem:
+    required: [id, type, prompt]
+    fields:
+      id: {type: string}
+      type: {type: enum, values: [recall, conceptual, practical, debugging, scenario, transfer]}
+      prompt: {type: string}
+      objective_refs: {type: list, item: string}
+      concept_refs: {type: list, item: string}
+      evaluation_policy: {type: object}
+
+  Learner:
+    required: [id, created_at, updated_at]
+    fields:
+      id: {type: string}
+      profile: {type: object}
+      preferences: {type: object}
+      created_at: {type: datetime}
+      updated_at: {type: datetime}
+
+  LearningSession:
+    required: [id, learner_id, started_at]
+    fields:
+      id: {type: string}
+      learner_id: {type: string, ref: Learner}
+      started_at: {type: datetime}
+      ended_at: {type: datetime, nullable: true}
+      context: {type: object}
+      activity_refs: {type: list, item: string}
+
+  Attempt:
+    required: [id, learner_id, target_id, target_type, submitted_at, response, evaluation]
+    fields:
+      id: {type: string}
+      learner_id: {type: string, ref: Learner}
+      target_id: {type: string}
+      target_type: {type: enum, values: [exercise, assessment_item]}
+      session_id: {type: string, ref: LearningSession}
+      submitted_at: {type: datetime}
+      response: {type: object}
+      evaluation: {type: object}
+      score: {type: number, minimum: 0, maximum: 100, nullable: true}
+      correct: {type: boolean, nullable: true}
+      hints_used: {type: integer, minimum: 0}
+      duration_seconds: {type: integer, minimum: 0, nullable: true}
+      feedback: {type: string, nullable: true}
+
+  Mastery:
+    required: [id, learner_id, target_id, target_type, level, score, confidence, evidence_count]
+    fields:
+      id: {type: string}
+      learner_id: {type: string, ref: Learner}
+      target_id: {type: string}
+      target_type: {type: enum, values: [concept, topic, skill]}
+      level: {type: enum, values: [not_started, introduced, developing, proficient, mastered]}
+      score: {type: number, minimum: 0, maximum: 100}
+      confidence: {type: number, minimum: 0, maximum: 1}
+      evidence_count: {type: integer, minimum: 0}
+      last_assessed_at: {type: datetime, nullable: true}
+      status: {type: enum, values: [active, needs_review]}
+      weaknesses: {type: list, item: string}
+      strengths: {type: list, item: string}
+
+invariants:
+  - A Lesson must reference at least one LearningObjective.
+  - An Exercise must evaluate at least one LearningObjective.
+  - An Attempt is immutable evidence and must never be silently overwritten.
+  - Mastery is derived state and must be traceable to evidence.
+  - Learner progress must reference the content version used for assessment.
+  - The UI must not independently calculate mastery.
