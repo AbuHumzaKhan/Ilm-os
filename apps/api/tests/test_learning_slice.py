@@ -43,7 +43,8 @@ def test_vlookup_request_resolves_to_persisted_lesson(session: Session) -> None:
     assert response.topic_id == "lookup-functions"
     assert response.concept_id == "vlookup"
     assert response.lesson.title == "VLOOKUP Fundamentals"
-    assert response.exercise_id == "vlookup-basic-exercise"
+    assert response.exercise.id == "vlookup-basic-exercise"
+    assert response.exercise.prompt == "Use VLOOKUP with an exact match to retrieve the value for E102 from A2:D10."
 
 
 def test_correct_attempt_persists_completed_progress(session: Session) -> None:
