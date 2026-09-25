@@ -1,0 +1,50 @@
+name: Connect Python runner
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-python-ui:
+    if: github.event.head_commit.message != 'chore(web): connect Python execution UI'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Connect Run Code to API
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('apps/web/app/learn/python/page.tsx')
+          text = path.read_text(encoding='utf-8')
+
+          text = text.replace(
+              '  const [saved, setSaved] = useState(false);',
+              '  const [saved, setSaved] = useState(false);\n  const [running, setRunning] = useState(false);'
+          )
+
+          old = '''  function runCode() {\n    // Frontend-only preview until the isolated Python worker is connected.\n    setOutput(`Category-wise Total Sales:\\n\\nElectronics    132988\\nFurniture       24997\\nStationery       8186\\nAccessories      6999\\n\\nTop 5 Products by Sales:\\n\\nLaptop          99998\\nMonitor         25998\\nDesk            15998\\nDesk Chair       8999\\nPrinter          6999`);\n    setActiveOutput("output");\n  }'''
+
+          new = '''  async function runCode() {\n    setRunning(true);\n    setActiveOutput("output");\n    setOutput("Running Python…");\n\n    try {\n      const response = await fetch("http://127.0.0.1:8000/api/python/execute", {\n        method: "POST",\n        headers: { "Content-Type": "application/json" },\n        body: JSON.stringify({ code, columns, rows }),\n      });\n\n      const data = await response.json();\n      if (!response.ok) {\n        throw new Error(data.detail || "Python execution failed.");\n      }\n\n      const stderr = data.stderr ? `\\n\\n[stderr]\\n${data.stderr}` : "";\n      setOutput(`${data.stdout || "No output produced."}${stderr}`);\n    } catch (error) {\n      setOutput(error instanceof Error ? `Execution error: ${error.message}` : "Execution error.");\n    } finally {\n      setRunning(false);\n    }\n  }'''
+
+          if old not in text:
+              raise SystemExit('Expected frontend runCode block was not found; refusing to modify the file.')
+          text = text.replace(old, new)
+          text = text.replace(
+              '<button className="run-button" type="button" onClick={runCode}>▶ Run Code</button><span>Frontend preview · execution worker will connect here</span>',
+              '<button className="run-button" type="button" onClick={runCode} disabled={running}>{running ? "Running…" : "▶ Run Code"}</button><span>{running ? "Executing in isolated Python worker…" : "Python 3 · pandas · isolated execution"}</span>'
+          )
+
+          path.write_text(text, encoding='utf-8')
+
+      - name: Commit frontend connection
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/app/learn/python/page.tsx
+          git diff --cached --quiet || git commit -m "chore(web): connect Python execution UI"
+          git push
