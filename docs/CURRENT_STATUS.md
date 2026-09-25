@@ -6,7 +6,7 @@
 
 ## Current Milestone
 
-Technical architecture + learning UX specification.
+Technology stack selection.
 
 ## Completed
 
@@ -30,14 +30,19 @@ Technical architecture + learning UX specification.
 - Technical architecture layer defined.
 - Technical requirements and technology-selection criteria defined.
 - Multi-page Learning UX specification defined.
+- Initial technology stack selected and documented.
+
+## Selected Stack
+
+Next.js + TypeScript + Tailwind CSS → FastAPI/Python → PostgreSQL → Supabase Auth/Storage adapters → Git-based Markdown/MDX content → provider-neutral LLM layer → isolated execution workers → Vitest/Playwright/pytest → Vercel + container deployment.
 
 ## In Progress
 
-Review the technical architecture, learning UX, and requirements before selecting the application technology stack.
+Create the implementation architecture and repository structure from the accepted technology stack.
 
 ## Next Task
 
-Select and document the initial technology stack based on the defined requirements, then create the implementation architecture and repository structure.
+Define the concrete `src/` architecture, application modules, API boundaries, content directories, database/migration structure, execution-worker boundaries, and development workflow.
 
 ## Do Not Work On Yet
 
@@ -45,8 +50,9 @@ Select and document the initial technology stack based on the defined requiremen
 - Do not build advanced AI agents.
 - Do not optimize deployment infrastructure.
 - Do not add unnecessary integrations.
-- Do not begin production UI implementation until the technology and implementation architecture are selected.
+- Do not start large-scale UI implementation before the implementation architecture is established.
 - Do not introduce microservices without a measured requirement.
+- Do not expose untrusted Python/SQL execution publicly before sandbox security controls are implemented and tested.
 
 ## Working Rule
 
