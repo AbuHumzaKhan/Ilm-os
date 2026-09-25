@@ -1,0 +1,19 @@
+id: excel
+name: Excel
+description: Spreadsheet analysis and productivity skills for real-world work.
+topics:
+  - id: lookup-functions
+    name: Lookup Functions
+    concepts:
+      - id: vlookup
+        name: VLOOKUP
+        lessons:
+          - id: vlookup-basics
+            title: VLOOKUP Fundamentals
+            objective: Use VLOOKUP to retrieve a value from a structured table using an exact match.
+            content: |
+              VLOOKUP searches for a value in the first column of a table and returns a value from another column in the same row.
+            exercises:
+              - id: vlookup-basic-exercise
+                prompt: "Use VLOOKUP to return the department for employee ID E102 from the supplied employee table."
+                expected_answer: "=VLOOKUP(\"E102\",A2:D10,4,FALSE)"
