@@ -6,7 +6,7 @@
 
 ## Current Milestone
 
-Technology stack selection.
+Implementation architecture and open-source integration strategy.
 
 ## Completed
 
@@ -31,18 +31,25 @@ Technology stack selection.
 - Technical requirements and technology-selection criteria defined.
 - Multi-page Learning UX specification defined.
 - Initial technology stack selected and documented.
+- Concrete implementation architecture defined.
+- Open-source component registry created.
+- Open-source integration strategy defined.
 
 ## Selected Stack
 
 Next.js + TypeScript + Tailwind CSS → FastAPI/Python → PostgreSQL → Supabase Auth/Storage adapters → Git-based Markdown/MDX content → provider-neutral LLM layer → isolated execution workers → Vitest/Playwright/pytest → Vercel + container deployment.
 
+## Open-Source Strategy
+
+Use multiple open-source projects through reference patterns, compatible dependencies, and isolated adapters where appropriate. Direct code reuse is currently limited to components with verified compatible licensing. MIT candidates currently prioritized include Cairn, AI Deep Dive, and vibe-learn. GPL/AGPL projects such as Adapt and LearnHouse remain reference-only unless a deliberate license strategy is approved.
+
 ## In Progress
 
-Create the implementation architecture and repository structure from the accepted technology stack.
+Prepare the initial repository implementation skeleton and freeze the first vertical slice.
 
 ## Next Task
 
-Define the concrete `src/` architecture, application modules, API boundaries, content directories, database/migration structure, execution-worker boundaries, and development workflow.
+Create the implementation skeleton and contracts for the first vertical slice: request → skill resolution → lesson → exercise → attempt → progress.
 
 ## Do Not Work On Yet
 
@@ -50,7 +57,7 @@ Define the concrete `src/` architecture, application modules, API boundaries, co
 - Do not build advanced AI agents.
 - Do not optimize deployment infrastructure.
 - Do not add unnecessary integrations.
-- Do not start large-scale UI implementation before the implementation architecture is established.
+- Do not begin large-scale UI implementation before the first vertical slice is working.
 - Do not introduce microservices without a measured requirement.
 - Do not expose untrusted Python/SQL execution publicly before sandbox security controls are implemented and tested.
 
