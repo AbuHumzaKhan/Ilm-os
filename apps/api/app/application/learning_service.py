@@ -5,12 +5,18 @@ from app.infrastructure.repository import LearningRepository
 
 
 @dataclass(frozen=True)
+class ExerciseSummary:
+    id: str
+    prompt: str
+
+
+@dataclass(frozen=True)
 class LearningResponse:
     skill_id: str
     topic_id: str
     concept_id: str
     lesson: Lesson
-    exercise_id: str
+    exercise: ExerciseSummary
 
 
 class LearningService:
@@ -35,7 +41,10 @@ class LearningService:
             topic_id="lookup-functions",
             concept_id="vlookup",
             lesson=lesson,
-            exercise_id=exercise.id,
+            exercise=ExerciseSummary(
+                id=exercise.id,
+                prompt=exercise.prompt,
+            ),
         )
 
     def evaluate_attempt(self, attempt: Attempt) -> Progress:
