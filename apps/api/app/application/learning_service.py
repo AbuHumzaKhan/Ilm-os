@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from app.domain.models import Attempt, Lesson, Progress
+from app.infrastructure.repository import LearningRepository
 
 
 @dataclass(frozen=True)
@@ -13,35 +14,33 @@ class LearningResponse:
 
 
 class LearningService:
-    """First vertical-slice use case: resolve VLOOKUP and return its lesson."""
+    """Application use cases for the first persisted learning slice."""
+
+    def __init__(self, repository: LearningRepository):
+        self.repository = repository
 
     def start_learning(self, learner_id: str, request: str) -> LearningResponse:
         normalized = request.strip().lower()
         if "vlookup" not in normalized:
             raise ValueError("This first slice currently supports VLOOKUP only.")
 
-        lesson = Lesson(
-            id="vlookup-basics",
-            concept_id="vlookup",
-            title="VLOOKUP Fundamentals",
-            objective="Use VLOOKUP to retrieve a value from a structured table using an exact match.",
-            content=(
-                "VLOOKUP searches for a value in the first column of a table "
-                "and returns a value from another column in the same row."
-            ),
-        )
+        self.repository.ensure_learner(learner_id)
+        lesson = self.repository.get_lesson("vlookup-basics")
+        exercise = self.repository.get_exercise("vlookup-basic-exercise")
+        if lesson is None or exercise is None:
+            raise RuntimeError("VLOOKUP learning content is not available in the database.")
+
         return LearningResponse(
             skill_id="excel",
             topic_id="lookup-functions",
             concept_id="vlookup",
             lesson=lesson,
-            exercise_id="vlookup-basic-exercise",
+            exercise_id=exercise.id,
         )
 
     def evaluate_attempt(self, attempt: Attempt) -> Progress:
-        status = "completed" if attempt.correct else "in_progress"
-        return Progress(
-            learner_id=attempt.learner_id,
-            lesson_id="vlookup-basics",
-            status=status,
-        )
+        exercise = self.repository.get_exercise(attempt.exercise_id)
+        if exercise is None:
+            raise ValueError(f"Exercise not found: {attempt.exercise_id}")
+
+        return self.repository.record_attempt(attempt, exercise.lesson_id)
