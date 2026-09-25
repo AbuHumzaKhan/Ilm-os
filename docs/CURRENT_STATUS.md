@@ -6,25 +6,32 @@
 
 ## Current Milestone
 
-Repository and project-control foundation.
+Project-control and repository foundation established.
 
 ## Completed
 
 - Public GitHub repository created.
-- MIT license selected as the intended project license.
-- Project README created.
+- MIT license present.
+- README created.
 - Project Mind documented.
 - Controlled development plan documented.
+- Roadmap documented.
+- Future-scope boundary documented.
+- Development rules documented.
+- Initial architecture boundaries documented.
+- Initial decision log created.
+- Initial 50+ skill catalog created.
+- Contribution guidelines created.
+- Security policy created.
+- Base `.gitignore` created.
 
 ## In Progress
 
-- Define architecture and development rules.
-- Define the initial skill catalog.
-- Define the first Learning Engine contract.
+Finalize Phase 0 requirements and define the Learning Engine contract.
 
 ## Next Task
 
-Complete Phase 0 documentation and architecture decisions before application implementation begins.
+Define the product requirements for the Learning Engine before selecting the application technology stack.
 
 ## Blocked By
 
@@ -36,7 +43,8 @@ No blocker currently identified.
 - Do not build advanced AI agents.
 - Do not optimize deployment infrastructure.
 - Do not add unnecessary integrations.
-- Do not start production UI before the core learning workflow is defined.
+- Do not start production UI before the learning workflow is defined.
+- Do not lock in a technology stack without documenting the requirements it must satisfy.
 
 ## Working Rule
 
